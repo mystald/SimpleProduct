@@ -33,11 +33,11 @@ Accept: application/json
   "password": "Admin@123"
 }
 
-### 4. Access Protected Resource (WeatherForecast) with Access Token
+### 4. Access Protected Resource (Products) with Access Token
 # Paste token or use response variable if using VS/VS Code REST Client
 @authToken = {{login.response.body.accessToken}}
 
-GET {{SimpleProduct.Server_HostAddress}}/weatherforecast/
+GET {{SimpleProduct.Server_HostAddress}}/api/products
 Authorization: Bearer {{authToken}}
 Accept: application/json
 
@@ -63,7 +63,7 @@ Authorization: Bearer {{authToken}}
 Accept: application/json
 
 ### 8. Attempt accessing protected resource without token (Expect 401 Unauthorized)
-GET {{SimpleProduct.Server_HostAddress}}/weatherforecast/
+GET {{SimpleProduct.Server_HostAddress}}/api/products
 Accept: application/json
 
 ###
