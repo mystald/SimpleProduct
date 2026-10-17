@@ -4,4 +4,5 @@
     <Deploy />
   </Project>
   <Project Path="SimpleProduct.Server/SimpleProduct.Server.csproj" />
+  <Project Path="SimpleProduct.Tests/SimpleProduct.Tests.csproj" />
 </Solution>
