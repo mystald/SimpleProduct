@@ -111,6 +111,20 @@ public class ProductsControllerTests
     }
 
     [Fact]
+    public async Task Create_ReturnsBadRequest_WhenModelStateIsInvalid()
+    {
+        // Arrange
+        _controller.ModelState.AddModelError("Name", "Name is required");
+        var createDto = new CreateProductDto();
+
+        // Act
+        var result = await _controller.Create(createDto, CancellationToken.None);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
     public async Task Update_ReturnsOk_WhenProductFoundAndUpdated()
     {
         // Arrange
@@ -141,6 +155,20 @@ public class ProductsControllerTests
 
         // Assert
         Assert.IsType<NotFoundObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Update_ReturnsBadRequest_WhenModelStateIsInvalid()
+    {
+        // Arrange
+        _controller.ModelState.AddModelError("Price", "Price must be positive");
+        var updateDto = new UpdateProductDto();
+
+        // Act
+        var result = await _controller.Update(1, updateDto, CancellationToken.None);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 
     [Fact]
@@ -204,5 +232,19 @@ public class ProductsControllerTests
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
         Assert.NotNull(badRequestResult.Value);
+    }
+
+    [Fact]
+    public async Task Search_ReturnsBadRequest_WhenModelStateIsInvalid()
+    {
+        // Arrange
+        _controller.ModelState.AddModelError("Name", "Name is too long");
+        var searchDto = new ProductSearchDto();
+
+        // Act
+        var result = await _controller.Search(searchDto, CancellationToken.None);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 }

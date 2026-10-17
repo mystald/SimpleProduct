@@ -79,6 +79,23 @@ public class AuthControllerTests
     }
 
     [Fact]
+    public async Task Register_ReturnsBadRequest_WhenArgumentInvalid()
+    {
+        // Arrange
+        var request = new RegisterRequest { Email = "bad@test.com", Password = "short" };
+        _authServiceMock.Setup(s => s.RegisterAsync(request, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentException("Password too weak"));
+
+        // Act
+        var result = await _controller.Register(request, CancellationToken.None);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        var problem = Assert.IsType<ProblemDetails>(badRequestResult.Value);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+    }
+
+    [Fact]
     public async Task Login_ReturnsOk_WhenCredentialsValid()
     {
         // Arrange
@@ -141,6 +158,23 @@ public class AuthControllerTests
     }
 
     [Fact]
+    public async Task RefreshToken_ReturnsUnauthorized_WhenTokenIsInvalidOrExpired()
+    {
+        // Arrange
+        var request = new RefreshTokenRequest { RefreshToken = "expired_or_invalid_refresh" };
+        _authServiceMock.Setup(s => s.RefreshTokenAsync(request, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new UnauthorizedAccessException("Invalid or expired refresh token."));
+
+        // Act
+        var result = await _controller.RefreshToken(request, CancellationToken.None);
+
+        // Assert
+        var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+        var problem = Assert.IsType<ProblemDetails>(unauthorizedResult.Value);
+        Assert.Equal(StatusCodes.Status401Unauthorized, problem.Status);
+    }
+
+    [Fact]
     public async Task Revoke_ReturnsOk_WhenUserIsAuthenticated()
     {
         // Arrange
@@ -153,6 +187,19 @@ public class AuthControllerTests
 
         // Assert
         Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Revoke_ReturnsUnauthorized_WhenUserClaimMissing()
+    {
+        // Arrange
+        SetUserContext(null);
+
+        // Act
+        var result = await _controller.Revoke(CancellationToken.None);
+
+        // Assert
+        Assert.IsType<UnauthorizedResult>(result);
     }
 
     [Fact]
@@ -194,5 +241,18 @@ public class AuthControllerTests
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
         var problem = Assert.IsType<ProblemDetails>(notFoundResult.Value);
         Assert.Equal(StatusCodes.Status404NotFound, problem.Status);
+    }
+
+    [Fact]
+    public async Task GetCurrentUser_ReturnsUnauthorized_WhenUserClaimMissing()
+    {
+        // Arrange
+        SetUserContext(null);
+
+        // Act
+        var result = await _controller.GetCurrentUser(CancellationToken.None);
+
+        // Assert
+        Assert.IsType<UnauthorizedResult>(result);
     }
 }
