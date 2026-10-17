@@ -1,5 +1,68 @@
 @SimpleProduct.Server_HostAddress = http://localhost:5213
 
+### 1. Register a new user
+POST {{SimpleProduct.Server_HostAddress}}/api/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "user@example.com",
+  "password": "Password123!",
+  "name": "John Doe"
+}
+
+### 2. Login as the newly created user
+# @name login
+POST {{SimpleProduct.Server_HostAddress}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "user@example.com",
+  "password": "Password123!"
+}
+
+### 3. Login as Seeded Admin
+# @name adminLogin
+POST {{SimpleProduct.Server_HostAddress}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "admin@simpleproduct.com",
+  "password": "Admin@123"
+}
+
+### 4. Access Protected Resource (WeatherForecast) with Access Token
+# Paste token or use response variable if using VS/VS Code REST Client
+@authToken = {{login.response.body.accessToken}}
+
+GET {{SimpleProduct.Server_HostAddress}}/weatherforecast/
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 5. Get Current User Info
+GET {{SimpleProduct.Server_HostAddress}}/api/auth/me
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 6. Refresh Token
+@refreshToken = {{login.response.body.refreshToken}}
+
+POST {{SimpleProduct.Server_HostAddress}}/api/auth/refresh-token
+Content-Type: application/json
+Accept: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 7. Revoke Tokens (Logout)
+POST {{SimpleProduct.Server_HostAddress}}/api/auth/revoke
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 8. Attempt accessing protected resource without token (Expect 401 Unauthorized)
 GET {{SimpleProduct.Server_HostAddress}}/weatherforecast/
 Accept: application/json
 
