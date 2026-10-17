@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SimpleProduct.Server.Authentication.Models;
+using SimpleProduct.Server.Products.Models;
 
 namespace SimpleProduct.Server.Data
 {
@@ -12,6 +13,7 @@ namespace SimpleProduct.Server.Data
         }
 
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public DbSet<Product> Products => Set<Product>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -27,6 +29,14 @@ namespace SimpleProduct.Server.Data
                       .WithMany(u => u.RefreshTokens)
                       .HasForeignKey(e => e.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Product>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Name).IsRequired().HasMaxLength(200);
+                entity.Property(p => p.Description).HasMaxLength(1000);
+                entity.Property(p => p.Price).HasPrecision(18, 2);
             });
         }
     }
