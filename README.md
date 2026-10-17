@@ -92,3 +92,17 @@ When starting up for the first time, the application automatically seeds an admi
 | Role | Email | Password |
 |---|---|---|
 | **Admin** | `admin@simpleproduct.com` | `Admin@123` |
+
+
+---
+
+## Running Unit Tests
+
+The test suite is built with **xUnit** and **Moq**, located in `SimpleProduct.Tests`.
+
+### Run Tests with Code Coverage
+To run the tests and verify that controller code coverage meets the ≥ 80% criteria:
+```powershell
+dotnet test SimpleProduct.Tests\SimpleProduct.Tests.csproj --settings SimpleProduct.Tests\coverlet.runsettings
+```
+Coverage artifacts will be output to `SimpleProduct.Tests/TestResults/**/coverage.cobertura.xml`.
