@@ -28,7 +28,7 @@ namespace SimpleProduct.Server.Authentication.Services
             _configuration = configuration;
         }
 
-        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+        public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
         {
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
             if (existingUser != null)
@@ -62,7 +62,7 @@ namespace SimpleProduct.Server.Authentication.Services
             var refreshToken = _tokenService.GenerateRefreshToken(user.Id);
 
             _context.RefreshTokens.Add(refreshToken);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
 
             var expirationMinutes = int.TryParse(_configuration["Jwt:AccessTokenExpirationMinutes"], out var exp) ? exp : 60;
 
@@ -76,7 +76,7 @@ namespace SimpleProduct.Server.Authentication.Services
             };
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
@@ -89,7 +89,7 @@ namespace SimpleProduct.Server.Authentication.Services
             var refreshToken = _tokenService.GenerateRefreshToken(user.Id);
 
             _context.RefreshTokens.Add(refreshToken);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
 
             var expirationMinutes = int.TryParse(_configuration["Jwt:AccessTokenExpirationMinutes"], out var exp) ? exp : 60;
 
@@ -103,11 +103,11 @@ namespace SimpleProduct.Server.Authentication.Services
             };
         }
 
-        public async Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request)
+        public async Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken ct = default)
         {
             var existingRefreshToken = await _context.RefreshTokens
                 .Include(r => r.User)
-                .FirstOrDefaultAsync(r => r.Token == request.RefreshToken);
+                .FirstOrDefaultAsync(r => r.Token == request.RefreshToken, ct);
 
             if (existingRefreshToken == null || !existingRefreshToken.IsActive)
             {
@@ -129,7 +129,7 @@ namespace SimpleProduct.Server.Authentication.Services
             var newRefreshToken = _tokenService.GenerateRefreshToken(user.Id);
 
             _context.RefreshTokens.Add(newRefreshToken);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
 
             var expirationMinutes = int.TryParse(_configuration["Jwt:AccessTokenExpirationMinutes"], out var exp) ? exp : 60;
 
@@ -143,11 +143,11 @@ namespace SimpleProduct.Server.Authentication.Services
             };
         }
 
-        public async Task<bool> RevokeRefreshTokenAsync(string userId)
+        public async Task<bool> RevokeRefreshTokenAsync(string userId, CancellationToken ct = default)
         {
             var activeTokens = await _context.RefreshTokens
                 .Where(r => r.UserId == userId && !r.IsRevoked)
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (!activeTokens.Any())
             {
@@ -160,11 +160,11 @@ namespace SimpleProduct.Server.Authentication.Services
                 token.RevokedAt = DateTime.UtcNow;
             }
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
             return true;
         }
 
-        public async Task<UserInfoResponse?> GetCurrentUserAsync(string userId)
+        public async Task<UserInfoResponse?> GetCurrentUserAsync(string userId, CancellationToken ct = default)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)

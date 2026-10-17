@@ -22,11 +22,11 @@ namespace SimpleProduct.Server.Authentication.Controllers
         /// </summary>
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
         {
             try
             {
-                var response = await _authService.RegisterAsync(request);
+                var response = await _authService.RegisterAsync(request, cancellationToken);
                 return Created(string.Empty, response);
             }
             catch (InvalidOperationException ex)
@@ -54,11 +54,11 @@ namespace SimpleProduct.Server.Authentication.Controllers
         /// </summary>
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
         {
             try
             {
-                var response = await _authService.LoginAsync(request);
+                var response = await _authService.LoginAsync(request, cancellationToken);
                 return Ok(response);
             }
             catch (UnauthorizedAccessException ex)
@@ -77,11 +77,11 @@ namespace SimpleProduct.Server.Authentication.Controllers
         /// </summary>
         [HttpPost("refresh-token")]
         [AllowAnonymous]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
         {
             try
             {
-                var response = await _authService.RefreshTokenAsync(request);
+                var response = await _authService.RefreshTokenAsync(request, cancellationToken);
                 return Ok(response);
             }
             catch (UnauthorizedAccessException ex)
@@ -100,7 +100,7 @@ namespace SimpleProduct.Server.Authentication.Controllers
         /// </summary>
         [HttpPost("revoke")]
         [Authorize]
-        public async Task<IActionResult> Revoke()
+        public async Task<IActionResult> Revoke(CancellationToken cancellationToken)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -108,7 +108,7 @@ namespace SimpleProduct.Server.Authentication.Controllers
                 return Unauthorized();
             }
 
-            await _authService.RevokeRefreshTokenAsync(userId);
+            await _authService.RevokeRefreshTokenAsync(userId, cancellationToken);
             return Ok(new { message = "Tokens successfully revoked." });
         }
 
@@ -117,7 +117,7 @@ namespace SimpleProduct.Server.Authentication.Controllers
         /// </summary>
         [HttpGet("me")]
         [Authorize]
-        public async Task<IActionResult> GetCurrentUser()
+        public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -125,7 +125,7 @@ namespace SimpleProduct.Server.Authentication.Controllers
                 return Unauthorized();
             }
 
-            var userInfo = await _authService.GetCurrentUserAsync(userId);
+            var userInfo = await _authService.GetCurrentUserAsync(userId, cancellationToken);
             if (userInfo == null)
             {
                 return NotFound(new ProblemDetails
